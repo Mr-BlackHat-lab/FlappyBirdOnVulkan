@@ -2,6 +2,7 @@
 #include <stdexcept>
 #include <iostream>
 #include <optional>
+#include <set>
 #include <vector>
 
 namespace VulkanContext {
@@ -164,12 +165,67 @@ namespace VulkanContext {
         vkGetPhysicalDeviceProperties(state.physicalDevice, &deviceProperties);
         printf("Selected GPU: %s (Score: %d)\n", deviceProperties.deviceName, highestScore);
     }
+    static void createLogicalDevice(VulkanState& state) {
+        QueueFamilyIndices indices = findQueueFamilies(state.physicalDevice, state.surface);
+
+        // I used a set to ensure i don't request the same queue family twice
+        // if graphics and present are the same index.
+        std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
+        std::set<uint32_t> uinqueQueueFamilies={
+            indices.graphicsFamily.value(),
+            indices.presentFamily.value()
+        };
+
+        float queuePriority = 1.0f;
+        for (uint32_t queueFamily : uinqueQueueFamilies) {
+            VkDeviceQueueCreateInfo queueCreateInfo = {};
+            queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+            queueCreateInfo.queueFamilyIndex = queueFamily;
+            queueCreateInfo.queueCount = 1;
+            queueCreateInfo.pQueuePriorities = &queuePriority;
+            queueCreateInfos.push_back(queueCreateInfo);
+        }
+
+        VkPhysicalDeviceFeatures deviceFeatures = {};
+
+        VkDeviceCreateInfo createInfo = {};
+        createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+
+        createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
+        createInfo.pQueueCreateInfos = queueCreateInfos.data();
+
+        createInfo.pEnabledFeatures = &deviceFeatures;
+
+        const std::vector<const char*> deviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+
+        createInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
+        createInfo.ppEnabledExtensionNames = deviceExtensions.data();
+
+        createInfo.enabledLayerCount = 0;
+
+        // Actual create of Logical Device
+        VkResult result = vkCreateDevice(state.physicalDevice, &createInfo, nullptr, &state.device);
+        if (result != VK_SUCCESS) {
+            throw std::runtime_error("Failed to create logical device.");
+        }
+
+        vkGetDeviceQueue(state.device, indices.graphicsFamily.value(), 0, &state.graphicsQueue);
+        vkGetDeviceQueue(state.device, indices.presentFamily.value(), 0, &state.presentQueue);
+
+        printf("Logical Device created and queues retrieved.\n");
+
+    }
     void init(VulkanState& state) {
         createInstance(state);
         createSurface(state);
         pickPhysicalDevice(state);
+        createLogicalDevice(state);
     }
     void cleanup(VulkanState& state) {
+        if (state.device != VK_NULL_HANDLE) {
+            vkDestroyDevice(state.device, nullptr);
+            std::cout << "Vulkan logical Device destroyed successfully.\n";
+        }
         if (state.surface != VK_NULL_HANDLE) {
             vkDestroySurfaceKHR(state.instance, state.surface, nullptr);
             std::cout << "Vulkan surface destroyed successfully.\n";
