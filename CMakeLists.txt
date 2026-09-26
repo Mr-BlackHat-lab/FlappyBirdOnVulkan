@@ -7,7 +7,10 @@ find_package(Vulkan REQUIRED COMPONENTS volk shaderc_combined)
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_executable(FlappyBird src/main.cpp)
+add_executable(FlappyBird src/main.cpp
+        src/VulkanState.hpp
+        src/Core/Application.h
+        src/Core/Application.cpp)
 
 target_link_libraries(FlappyBird PRIVATE
         glfw

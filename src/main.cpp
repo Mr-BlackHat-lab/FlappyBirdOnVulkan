@@ -1,6 +1,18 @@
-#include <iostream>
+#include "VulkanState.hpp"
+#include "Core/Application.h"
+
 
 int main() {
-    std::cout << "Hello, World!" << std::endl;
+    VulkanState state;
+
+    Application::init(state,600,800,"FlappyBird");
+
+
+    while (!Application::shouldClose(state)) {
+        Application::update(state);
+    }
+
+
+    Application::cleanup(state);
     return 0;
 }
