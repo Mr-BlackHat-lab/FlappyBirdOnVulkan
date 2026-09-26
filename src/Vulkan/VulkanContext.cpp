@@ -5,7 +5,7 @@
 
 namespace VulkanContext {
     //helper function not exposed in header
-    static void createInstace(VulkanState& state) {
+    static void createInstance(VulkanState& state) {
 
         //AppInfo for Vulkan
         VkApplicationInfo appInfo{};
@@ -50,10 +50,25 @@ namespace VulkanContext {
         std::cout << "Vulkan instance created successfully."
                   << std::endl;
     }
+    static void createSurface(VulkanState& state) {
+        // glfwCreateWindowSurface takes the Vulkan instance, the GLFW window,
+        // an optional allocator, and a pointer to the surface variable.
+        VkResult result= glfwCreateWindowSurface(state.instance, state.window, nullptr, &state.surface);
+
+        if (result != VK_SUCCESS) {
+            throw std::runtime_error("Failed to create window surface!");
+        }
+        printf("Window Surface created successfully.\n");
+    }
     void init(VulkanState& state) {
-        createInstace(state);
+        createInstance(state);
+        createSurface(state);
     }
     void cleanup(VulkanState& state) {
+        if (state.surface != VK_NULL_HANDLE) {
+            vkDestroySurfaceKHR(state.instance, state.surface, nullptr);
+            std::cout << "Vulkan surface destroyed successfully.\nK";
+        }
         if (state.instance != VK_NULL_HANDLE) {
             vkDestroyInstance(state.instance, nullptr);
             std::cout << "Vulkan instance destroyed successfully.\nK";
