@@ -7,11 +7,11 @@ struct VulkanState {
 
     GLFWwindow* window= nullptr;
 
-    VkInstance instance;
-    VkDebugUtilsMessengerEXT debugMessenger;
-    VkPhysicalDevice physicalDevice;
-    VkDevice device;
-    VkQueue graphicsQueue;
-    VkQueue presentQueue;
+    VkInstance instance = VK_NULL_HANDLE;
+    VkDebugUtilsMessengerEXT debugMessenger = VK_NULL_HANDLE;
+    VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
+    VkDevice device = VK_NULL_HANDLE;
+    VkQueue graphicsQueue = VK_NULL_HANDLE;
+    VkQueue presentQueue = VK_NULL_HANDLE;
 
 };

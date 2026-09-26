@@ -10,7 +10,9 @@ set(CMAKE_CXX_STANDARD 20)
 add_executable(FlappyBird src/main.cpp
         src/VulkanState.hpp
         src/Core/Application.h
-        src/Core/Application.cpp)
+        src/Core/Application.cpp
+        src/Vulkan/VulkanContext.cpp
+        src/Vulkan/VulkanContext.h)
 
 target_link_libraries(FlappyBird PRIVATE
         glfw
