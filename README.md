@@ -1,184 +1,144 @@
+# FlappyVulkan
 
-Project structure
-FlappyVulkan/
-│
-├── CMakeLists.txt
-├── README.md
-│
-├── assets/
-│   ├── textures/
-│   │   ├── bird.png
-│   │   ├── pipe.png
-│   │   ├── background.png
-│   │   └── ground.png
-│   │
-│   ├── fonts/
-│   │   └── font.ttf
-│   │
-│   └── audio/
-│       ├── flap.wav
-│       ├── hit.wav
-│       └── point.wav
-│
-├── shaders/
-│   ├── sprite.vert
-│   └── sprite.frag
-│
-└── src/
-├── main.cpp
-├──VulkanState.hpp
-│
-├── Core/
-│   ├── Application.hpp
-│   └── Application.cpp
-│
-├── Vulkan/
-│   ├── VulkanContext.hpp
-│   ├── VulkanContext.cpp
-│   ├── Swapchain.hpp
-│   ├── Swapchain.cpp
-│   ├── Pipeline.hpp
-│   ├── Pipeline.cpp
-│   ├── Buffer.hpp
-│   ├── Buffer.cpp
-│   ├── Image.hpp
-│   ├── Image.cpp
-│   ├── Renderer.hpp
-│   └── Renderer.cpp
-│
-├── Game/
-│   ├── Game.hpp
-│   ├── Game.cpp
-│   ├── Bird.hpp
-│   ├── Bird.cpp
-│   ├── Pipe.hpp
-│   ├── Pipe.cpp
-│   ├── Collision.hpp
-│   ├── Collision.cpp
-│   ├── Score.hpp
-│   └── Score.cpp
-│
-└── Resources/
-├── Texture.hpp
-├── Texture.cpp
-├── Sprite.hpp
-├── Sprite.cpp
-├── Audio.hpp
-└── Audio.cpp
+A small Flappy Bird–style game implemented with Vulkan and GLFW. This repository contains a simple 2D renderer, game logic, and assets to build a playable prototype.
 
+## Features
+- Vulkan-based renderer (triangle → textured quad → sprites)
+- GLFW windowing and input
+- Simple 2D renderer and sprite batching
+- Game systems: bird physics, pipes, collision, scoring, audio
 
+## Quick Start
+Prerequisites: Vulkan SDK, GLFW, a C++ toolchain, and CMake.
 
+Configure and build (recommended using Ninja):
 
+```bash
+cmake -S . -B build -G "Ninja" -DCMAKE_BUILD_TYPE=Debug
+cmake --build build
+```
 
-main.cpp                    30
-Application                 150
-────────────────────────────────
-VulkanContext               400
-Swapchain                   250
-Pipeline                    250
-Buffer                      200
-Image                       200
-Renderer                    250
-────────────────────────────────
-Game                        250
-Bird                         80
-Pipe                        150
-Collision                    80
-Score                        80
-────────────────────────────────
-Texture                     150
-Sprite                      100
-Audio                       100
-────────────────────────────────
-TOTAL                     ~2,700 LOC
+Then run the executable produced in the `build` directory (name may vary):
 
+```bash
+./build/FlappyBird.exe
+```
 
-create GLFW window
-initialize Vulkan
-initialize renderer
-initialize game
-main loop
-process input
-update game
-render game
-cleanup
+On Windows with Visual Studio generators:
 
+```powershell
+cmake -S . -B build -G "Visual Studio 17 2022" -A x64
+cmake --build build --config Release
+```
 
+## Project Layout
+Top-level layout:
 
-The really important part
-You don't actually need all of this to make the game.
+```
+CMakeLists.txt
+README.md
+assets/
+  textures/ (bird, pipe, background, ground)
+  fonts/    (font.ttf)
+  audio/    (flap, hit, point)
+shaders/
+  sprite.vert
+  sprite.frag
+src/
+  main.cpp
+  VulkanState.hpp
+  Core/
+  Vulkan/
+  Game/
+  Resources/
+```
 
-I'd build it in stages:
+The code is split into renderer infrastructure (`VulkanContext`, `Swapchain`, `Pipeline`, `Buffer`, `Image`, `Renderer`), game logic (`Game`, `Bird`, `Pipe`, `Collision`, `Score`), and resource helpers (`Texture`, `Sprite`, `Audio`).
 
-Stage 1 — Vulkan triangle
-GLFW
-↓
-Vulkan
-↓
-Triangle
+Estimated size: ~2,700 LOC across core systems (approximate).
 
-~500–1,000 LOC depending on how much you abstract.
+## Build / Run Checklist
+- Install the Vulkan SDK and ensure `VK_SDK_PATH` / environment variables are set.
+- Install GLFW and make sure CMake can find it (or use provided CMake options to point to GLFW).
+- Configure with CMake and build as shown above.
 
-Stage 2 — textured quad
-GLFW
-↓
-Vulkan
-↓
-Texture
-↓
-Quad
+## Development Stages (recommended incremental approach)
+You don't need the entire architecture up front — build in stages:
 
-Now you can render the bird.
+1. Stage 1 — Vulkan triangle
+	- Create a GLFW window
+	- Initialize Vulkan
+	- Render a triangle
 
-Stage 3 — 2D renderer
-Make:
+2. Stage 2 — Textured quad
+	- Add texture support
+	- Render a textured quad (the bird sprite)
 
-drawSprite(...)
+3. Stage 3 — 2D renderer
+	- Implement a `drawSprite(...)` helper and batch rendering
 
-work.
+4. Stage 4 — Bird
+	- Add gravity, velocity, and flap input
 
-Now rendering the game becomes easy.
+5. Stage 5 — Pipes
+	- Implement pipe spawning, movement, and random gaps
 
-Stage 4 — Bird
-Add:
+6. Stage 6 — Collision
+	- Detect bird ↔ pipe, bird ↔ ground, bird ↔ ceiling
 
-gravity
-velocity
-flap
+7. Stage 7 — Game states
+	- READY → PLAYING → GAME OVER → RESTART
 
-Stage 5 — Pipes
-Add:
+8. Stage 8 — Polish
+	- Sprites, animation, sound, score, high score, particles, screen shake, menus
 
-pipe spawning
-movement
-random gaps
+This progressive approach keeps the Vulkan surface small and easier to debug.
 
-Stage 6 — Collision
-Add:
+## Recommended Starting Point
+Start with `src/main.cpp`, `src/Vulkan/VulkanContext.*`, and `src/Renderer.*`. Get a single textured quad rendering before expanding game logic.
 
-bird ↔ pipe
-bird ↔ ground
-bird ↔ ceiling
+## Notes
+- The repository contains example assets in `assets/` and simple vertex/fragment shaders in `shaders/`.
+- The provided structure is intentionally modular; you can replace or simplify subsystems while developing.
 
-Stage 7 — Game states
-READY
-↓
-PLAYING
-↓
-GAME OVER
-↓
-RESTART
+If you want, I can also:
+- Add a build script for Windows
+- Create CI build steps
+- Run a quick code scan for TODOs
 
-Stage 8 — Polish
-sprites
-animation
-sound
-score
-high score
-particles
-screen shake
-menus
+Enjoy building — Vulkan is low-level, so iterate small and test often.
 
-At that point you've got a legit little Vulkan game.
+## Current progress
+Automated scan of the `src/` tree shows the following components are implemented or partially implemented:
 
-My recommendation: don't start by trying to write a 2,700-line architecture. Start with main.cpp + VulkanContext + Renderer, get one textured quad rendering, and then build the game on top of that. That's much easier to debug with Vulkan.
+- Core / Windowing:
+	- `src/Core/Application.h` / `src/Core/Application.cpp` — GLFW window creation, event polling, cleanup.
+
+- Vulkan setup:
+	- `src/Vulkan/VulkanContext.h` / `src/Vulkan/VulkanContext.cpp` — Vulkan instance creation, surface creation, physical device selection, logical device creation, and cleanup.
+	- `src/Vulkan/Swapchain.cpp` exists but the header `Swapchain.h` is currently empty (swapchain implementation pending).
+	- `src/Vulkan/VulkanContext.cpp` currently initializes instance/device/queues but does not create swapchain, command pools, or render pass yet.
+
+- Entry point:
+	- `src/main.cpp` — initializes `Application` and `VulkanContext`, runs main loop.
+
+- State / helpers:
+	- `src/VulkanState.hpp` — central state struct for window, instance, device, queues, and surface.
+
+- Assets & shaders:
+	- `assets/` contains textures, audio, and a font.
+	- `shaders/` contains `sprite.vert` and `sprite.frag`.
+
+Summary: windowing and basic Vulkan device setup are working. Missing or TODO items to reach a renderable frame include:
+
+- Implement swapchain creation and image views
+- Create command pools, command buffers, and synchronization primitives
+- Build a render pass, framebuffers, and a pipeline (vertex/index buffers, shaders are present)
+- Implement a simple textured quad renderer and sprite batching
+- Add game logic files (Game, Bird, Pipe, Collision, Score) — these are not present yet
+
+Would you like me to:
+
+- Implement a minimal swapchain + render loop that clears the screen? (quick win)
+- Add a basic textured quad renderer using existing shaders? (next step)
+- Generate a TODO file listing concrete next tasks?

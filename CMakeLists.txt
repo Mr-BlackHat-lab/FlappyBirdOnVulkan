@@ -12,7 +12,9 @@ add_executable(FlappyBird src/main.cpp
         src/Core/Application.h
         src/Core/Application.cpp
         src/Vulkan/VulkanContext.cpp
-        src/Vulkan/VulkanContext.h)
+        src/Vulkan/VulkanContext.h
+        src/Vulkan/Swapchain.cpp
+        src/Vulkan/Swapchain.h)
 
 target_link_libraries(FlappyBird PRIVATE
         glfw
