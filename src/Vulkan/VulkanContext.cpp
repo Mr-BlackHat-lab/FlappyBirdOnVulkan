@@ -1,10 +1,13 @@
 #include "VulkanContext.h"
 #include <stdexcept>
 #include <iostream>
+#include <optional>
 #include <vector>
 
 namespace VulkanContext {
     //helper function not exposed in header
+
+    //instace creation
     static void createInstance(VulkanState& state) {
 
         //AppInfo for Vulkan
@@ -50,6 +53,7 @@ namespace VulkanContext {
         std::cout << "Vulkan instance created successfully."
                   << std::endl;
     }
+    //crating surface
     static void createSurface(VulkanState& state) {
         // glfwCreateWindowSurface takes the Vulkan instance, the GLFW window,
         // an optional allocator, and a pointer to the surface variable.
@@ -60,18 +64,119 @@ namespace VulkanContext {
         }
         printf("Window Surface created successfully.\n");
     }
+
+    // selecting physical device
+    struct QueueFamilyIndices {
+        std::optional<uint32_t> graphicsFamily;
+        std::optional<uint32_t> presentFamily;
+
+        bool isComplete() {
+            return graphicsFamily.has_value() && presentFamily.has_value();
+        }
+    };
+    static QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device, VkSurfaceKHR surface) { // <-- Pass device and surface
+        QueueFamilyIndices indices;
+
+        uint32_t queueFamilyCount = 0;
+        vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr); // <-- Use device
+        std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
+        vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data()); // <-- Use device
+
+        int i = 0;
+        for (const auto& queueFamily : queueFamilies) {
+            if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+                indices.graphicsFamily = i;
+            }
+
+            VkBool32 presentSupport = false;
+            vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, &presentSupport); // <-- Use device and surface
+            if (presentSupport) {
+                indices.presentFamily = i;
+            }
+            if (indices.isComplete()) {
+                break;
+            }
+            i++;
+        }
+        return indices;
+    }
+
+    bool isDeviceSuitable(VkPhysicalDevice device, VkSurfaceKHR surface) { // <-- Pass device and surface
+        QueueFamilyIndices indices = findQueueFamilies(device, surface);
+        return indices.isComplete();
+    }
+    int rateDeviceSuitability(VkPhysicalDevice device, VkSurfaceKHR surface) {
+        // If it doesn't have the required queues, it's completely unsuitable (Score = 0)
+        if (!isDeviceSuitable(device, surface)) {
+            return 0;
+        }
+
+        VkPhysicalDeviceProperties deviceProperties;
+        vkGetPhysicalDeviceProperties(device, &deviceProperties);
+
+        int score = 0;
+
+        // Discrete GPUs (Dedicated Graphics Cards like NVIDIA RTX or AMD Radeon)
+        // have a massive performance advantage over integrated ones.
+        if (deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) {
+            score += 1000;
+        }
+        // Integrated GPUs (like Intel UHD or AMD Radeon Graphics) are fallback options
+        else if (deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU) {
+            score += 100;
+        }
+
+        // Add the maximum texture size as a minor score boost to differentiate
+        // between two GPUs of the same type (the one with higher limits wins)
+        score += deviceProperties.limits.maxImageDimension2D;
+
+        return score;
+    }
+    static void pickPhysicalDevice(VulkanState& state) {
+        uint32_t deviceCount = 0;
+        vkEnumeratePhysicalDevices(state.instance, &deviceCount, nullptr);
+
+        if (deviceCount == 0) {
+            throw std::runtime_error("No Vulkan devices found.");
+        }
+        std::vector<VkPhysicalDevice> devices(deviceCount);
+        vkEnumeratePhysicalDevices(state.instance, &deviceCount, devices.data());
+
+        int highestScore = -1;
+
+        // Evaluate every device and pick the one with the highest score
+        for (const auto& device : devices) {
+            int score = rateDeviceSuitability(device, state.surface);
+
+            if (score > highestScore) {
+                highestScore = score;
+                state.physicalDevice = device;
+            }
+        }
+
+        // If the highest score is 0, no devices had the required queues
+        if (highestScore == 0 || state.physicalDevice == VK_NULL_HANDLE) {
+            throw std::runtime_error("Failed to find a suitable Vulkan device.");
+        }
+
+        // Print the name of the selected GPU to verify
+        VkPhysicalDeviceProperties deviceProperties;
+        vkGetPhysicalDeviceProperties(state.physicalDevice, &deviceProperties);
+        printf("Selected GPU: %s (Score: %d)\n", deviceProperties.deviceName, highestScore);
+    }
     void init(VulkanState& state) {
         createInstance(state);
         createSurface(state);
+        pickPhysicalDevice(state);
     }
     void cleanup(VulkanState& state) {
         if (state.surface != VK_NULL_HANDLE) {
             vkDestroySurfaceKHR(state.instance, state.surface, nullptr);
-            std::cout << "Vulkan surface destroyed successfully.\nK";
+            std::cout << "Vulkan surface destroyed successfully.\n";
         }
         if (state.instance != VK_NULL_HANDLE) {
             vkDestroyInstance(state.instance, nullptr);
-            std::cout << "Vulkan instance destroyed successfully.\nK";
+            std::cout << "Vulkan instance destroyed successfully.\n";
         }
     }
 }
