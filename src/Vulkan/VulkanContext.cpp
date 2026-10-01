@@ -71,15 +71,7 @@ namespace VulkanContext {
     }
 
     // selecting physical device
-    struct QueueFamilyIndices {
-        std::optional<uint32_t> graphicsFamily;
-        std::optional<uint32_t> presentFamily;
-
-        bool isComplete() {
-            return graphicsFamily.has_value() && presentFamily.has_value();
-        }
-    };
-    static QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device, VkSurfaceKHR surface) { // <-- Pass device and surface
+    QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device, VkSurfaceKHR surface) { // <-- Pass device and surface
         QueueFamilyIndices indices;
 
         uint32_t queueFamilyCount = 0;
