@@ -1,13 +1,16 @@
 #include "VulkanContext.h"
+
+#include <cstring>
+
+#include "Swapchain.h"
 #include <stdexcept>
 #include <iostream>
 #include <optional>
 #include <set>
 #include <vector>
 
-namespace VulkanContext {
-    //helper function not exposed in header
 
+namespace VulkanContext {
     //instace creation
     static void createInstance(VulkanState& state) {
 
@@ -101,10 +104,62 @@ namespace VulkanContext {
         }
         return indices;
     }
+    bool checkDeviceExtensionSupport(VkPhysicalDevice device) {
+        std::cout << "    -> [Trace] Entering checkDeviceExtensionSupport...\n";
 
-    bool isDeviceSuitable(VkPhysicalDevice device, VkSurfaceKHR surface) { // <-- Pass device and surface
+        const char* requiredDeviceExtensions[] = {
+            VK_KHR_SWAPCHAIN_EXTENSION_NAME
+        };
+        uint32_t requiredCount = 1;
+
+        uint32_t extensionCount = 0;
+        vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);
+
+        std::vector<VkExtensionProperties> availableExtensions(extensionCount);
+        vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, availableExtensions.data());
+
+        std::cout << "    -> [Trace] Queried " << extensionCount << " extensions.\n";
+
+        // Verify our required extensions are in the available list
+        for (uint32_t i = 0; i < requiredCount; i++) {
+            bool found = false;
+            for (const auto& extension : availableExtensions) {
+                if (strcmp(requiredDeviceExtensions[i], extension.extensionName) == 0) {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                std::cout << "    -> [Trace] Missing: " << requiredDeviceExtensions[i] << "\n";
+                return false;
+            }
+        }
+
+        std::cout << "    -> [Trace] Extensions OK.\n";
+        return true;
+    }
+    bool isDeviceSuitable(VkPhysicalDevice device, VkSurfaceKHR surface) {
         QueueFamilyIndices indices = findQueueFamilies(device, surface);
-        return indices.isComplete();
+
+        bool extensionsSupported = checkDeviceExtensionSupport(device);
+
+        bool swapChainAdequate = false;
+        if (extensionsSupported) {
+            SwapChainSupportDetails swapChainSupport = Swapchain::querySwapChainSupport(device, surface);
+            swapChainAdequate = !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty();
+        }
+
+        // --- DEBUG PRINTS ---
+        VkPhysicalDeviceProperties deviceProperties;
+        vkGetPhysicalDeviceProperties(device, &deviceProperties);
+
+        std::cout << "\nTesting GPU: " << deviceProperties.deviceName << "\n";
+        std::cout << " - Queue Families Complete: " << (indices.isComplete() ? "Yes" : "NO") << "\n";
+        std::cout << " - Extension Support: " << (extensionsSupported ? "Yes" : "NO") << "\n";
+        std::cout << " - Swapchain Adequate: " << (swapChainAdequate ? "Yes" : "NO") << "\n";
+        // --------------------
+
+        return indices.isComplete() && extensionsSupported && swapChainAdequate;
     }
     int rateDeviceSuitability(VkPhysicalDevice device, VkSurfaceKHR surface) {
         // If it doesn't have the required queues, it's completely unsuitable (Score = 0)
@@ -175,6 +230,9 @@ namespace VulkanContext {
             indices.graphicsFamily.value(),
             indices.presentFamily.value()
         };
+        // Save them to the global state for the swapchain to use later
+        state.graphicsQueueFamily = indices.graphicsFamily.value();
+        state.presentQueueFamily = indices.presentFamily.value();
 
         float queuePriority = 1.0f;
         for (uint32_t queueFamily : uinqueQueueFamilies) {
@@ -220,8 +278,13 @@ namespace VulkanContext {
         createSurface(state);
         pickPhysicalDevice(state);
         createLogicalDevice(state);
+        Swapchain::createSwapchain(state);
     }
     void cleanup(VulkanState& state) {
+        if (state.swapchain != VK_NULL_HANDLE) {
+            vkDestroySwapchainKHR(state.device, state.swapchain, nullptr);
+            std::cout << "Vulkan swapchain destroyed successfully.\n";
+        }
         if (state.device != VK_NULL_HANDLE) {
             vkDestroyDevice(state.device, nullptr);
             std::cout << "Vulkan logical Device destroyed successfully.\n";

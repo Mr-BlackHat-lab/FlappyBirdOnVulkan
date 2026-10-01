@@ -137,8 +137,3 @@ Summary: windowing and basic Vulkan device setup are working. Missing or TODO it
 - Implement a simple textured quad renderer and sprite batching
 - Add game logic files (Game, Bird, Pipe, Collision, Score) — these are not present yet
 
-Would you like me to:
-
-- Implement a minimal swapchain + render loop that clears the screen? (quick win)
-- Add a basic textured quad renderer using existing shaders? (next step)
-- Generate a TODO file listing concrete next tasks?
