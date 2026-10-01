@@ -35,7 +35,10 @@ struct VulkanState {
     //Buffer
     std::vector<VkFramebuffer> swapchainFramebuffers;
     VkCommandPool commandPool = VK_NULL_HANDLE;
-    VkCommandBuffer commandBuffer = VK_NULL_HANDLE; 
+    VkCommandBuffer commandBuffer = VK_NULL_HANDLE;
 
-
+    //semaphore and fence
+    VkSemaphore imageAvailableSemaphore;
+    VkSemaphore renderFinishedSemaphore;
+    VkFence inFlightFence;
 };

@@ -3,7 +3,7 @@
 #include "Vulkan/VulkanContext.h"
 #include "Vulkan/pipeline.h"
 #include "Vulkan/Buffer.h"
-
+#include "Vulkan/Semaphore.h"
 
 int main() {
     VulkanState state;
@@ -12,11 +12,13 @@ int main() {
     VulkanContext::init(state);
     Pipeline::createRenderPass(state);
     Buffer::init(state);
+    Semaphore::createSyncObjects(state);
 
     while (!Application::shouldClose(state)) {
         Application::update(state);
     }
 
+    Semaphore::cleanupSyncObjects(state);
     Buffer::cleanup(state);
     Pipeline::cleanup(state);
     VulkanContext::cleanup(state);

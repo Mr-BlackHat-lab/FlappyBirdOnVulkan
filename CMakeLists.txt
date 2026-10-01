@@ -18,7 +18,9 @@ add_executable(FlappyBird src/main.cpp
         src/Vulkan/pipeline.cpp
         src/Vulkan/pipeline.h
         src/Vulkan/Buffer.cpp
-        src/Vulkan/Buffer.h)
+        src/Vulkan/Buffer.h
+        src/Vulkan/Semaphore.cpp
+        src/Vulkan/Semaphore.h)
 
 target_link_libraries(FlappyBird PRIVATE
         glfw
