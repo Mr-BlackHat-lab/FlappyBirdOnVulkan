@@ -3,6 +3,7 @@
 #include <cstring>
 
 #include "Swapchain.h"
+#include "pipeline.h"
 #include <stdexcept>
 #include <iostream>
 #include <optional>

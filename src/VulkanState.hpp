@@ -29,5 +29,8 @@ struct VulkanState {
     // Added to interface with the swapchain images during rendering
     std::vector<VkImageView> swapchainImageViews;
 
+    //Pipeline
+    VkRenderPass renderPass = VK_NULL_HANDLE;
+
 
 };
