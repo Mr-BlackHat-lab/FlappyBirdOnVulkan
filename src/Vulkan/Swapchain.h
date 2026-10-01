@@ -15,4 +15,5 @@ namespace Swapchain {
 
     // Call this after the logical device is created
     void createSwapchain(VulkanState& state);
+    void createImageViews(VulkanState& state);
 }

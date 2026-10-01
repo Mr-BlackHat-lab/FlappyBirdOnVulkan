@@ -279,8 +279,13 @@ namespace VulkanContext {
         pickPhysicalDevice(state);
         createLogicalDevice(state);
         Swapchain::createSwapchain(state);
+        Swapchain::createImageViews(state);
     }
     void cleanup(VulkanState& state) {
+        for (auto imageView : state.swapchainImageViews) {
+            vkDestroyImageView(state.device, imageView, nullptr);
+        }
+        std::cout << "Swapchain Image Views destroyed.\n";
         if (state.swapchain != VK_NULL_HANDLE) {
             vkDestroySwapchainKHR(state.device, state.swapchain, nullptr);
             std::cout << "Vulkan swapchain destroyed successfully.\n";

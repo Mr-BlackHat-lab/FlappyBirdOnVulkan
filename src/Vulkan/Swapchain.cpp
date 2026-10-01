@@ -121,4 +121,32 @@ namespace Swapchain {
         printf("Swapchain created successfully.\n");
     }
 
+    void createImageViews(VulkanState &state) {
+        state.swapchainImages.resize((state.swapchainImageViews.size()));
+        for (size_t i = 0; i < state.swapchainImages.size(); i++) {
+            VkImageViewCreateInfo imageInfo{};
+            imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+            imageInfo.image = state.swapchainImages[i];
+
+
+            imageInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+            imageInfo.format = state.swapchainFormat;
+
+            imageInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+            imageInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+            imageInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+            imageInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+
+            imageInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+            imageInfo.subresourceRange.baseMipLevel = 0;
+            imageInfo.subresourceRange.levelCount = 1;
+            imageInfo.subresourceRange.baseArrayLayer = 0;
+            imageInfo.subresourceRange.layerCount = 1;
+
+            if (vkCreateImageView(state.device, &imageInfo, nullptr, &state.swapchainImageViews[i]) != VK_SUCCESS) {
+                throw std::runtime_error("Failed to create image view!");
+            }
+        }
+        printf("Image view created successfully.\n");
+    }
 }
