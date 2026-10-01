@@ -32,5 +32,8 @@ struct VulkanState {
     //Pipeline
     VkRenderPass renderPass = VK_NULL_HANDLE;
 
+    //Buffer
+    std::vector<VkFramebuffer> swapchainFramebuffers;
+
 
 };
