@@ -89,6 +89,7 @@ namespace Buffer {
     void init(VulkanState& state) {
         createFramebuffers(state);
         createCommandPool(state);
+        createCommandBuffer(state);
     }
     void cleanup(VulkanState& state) {
         destroyFramebuffers(state);
